@@ -234,9 +234,9 @@ document.addEventListener("DOMContentLoaded", function () {
         engineSelect.innerHTML = '<option value="">— wybierz silnik —</option>';
         engineSelect.disabled = true;
 
-        if (!brand || !model) return;
+        if (!brand) return; // ✅ tylko marka jest wymagana
 
-        fetch(`/get-engines/?company_name=${brand}&car_name=${model}`)
+        fetch(`/get-engines/?company_name=${brand}&car_name=${model || ""}`)
             .then(response => response.json())
             .then(engines => {
                 engines.forEach(engine => {
@@ -251,6 +251,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     brandSelect.addEventListener("change", function () {
         loadModels(this.value);
+        loadEngines(this.value, modelSelect.value); // ✅ pozwala: BMW + V8
     });
 
     modelSelect.addEventListener("change", function () {
@@ -259,12 +260,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (brandSelect.value) {
         loadModels(brandSelect.value);
+        loadEngines(brandSelect.value, modelSelect.value);
     }
 });
 </script>
-
-
-
 
 
 {% endblock %}
