@@ -107,17 +107,14 @@
 
       <div class="search-actions">
         <button type="submit" class="search-btn">🔎 Wyszukaj</button>
+        <hr>
+        <button type="submit" name="download_csv" value="1" class="csv-btn">
+            ⬇ Pobierz CSV
+        </button>
       </div>
 
     </form>
 
-    <hr>
-
-    <div class="csv-actions">
-      <a href="{% url 'download_csv' %}?{{ request.GET.urlencode }}" class="csv-btn">
-        ⬇ Pobierz CSV
-      </a>
-    </div>
 
 
   </section>
