@@ -4,7 +4,7 @@ from .models import Car
 class CarFilterForm(forms.Form):
     company_name = forms.ChoiceField(required=False)
     car_name = forms.ChoiceField(required=False, choices=[], label="Model")
-    engine = forms.MultipleChoiceField(required=False)
+    engine = forms.MultipleChoiceField(required=False, choices=[])
     min_power = forms.FloatField(required=False)
     max_power = forms.FloatField(required=False)
     min_speed = forms.IntegerField(required=False)
