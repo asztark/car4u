@@ -155,26 +155,47 @@ def search(request):
 
     companies = sorted(Car.objects.values_list('company_name', flat=True).distinct())
     car_names = sorted(Car.objects.values_list('car_name', flat=True).distinct())
-    engines = sorted(Car.objects.values_list('engine', flat=True).distinct())
+    engines_qs = Car.objects.all()
+
+    if request.GET.get("company_name"):
+        engines_qs = engines_qs.filter(company_name=request.GET.get("company_name"))
+
+    if request.GET.get("car_name"):
+        engines_qs = engines_qs.filter(car_name=request.GET.get("car_name"))
+
+    engines = sorted(engines_qs.values_list("engine", flat=True).distinct())
+
 
     form = CarFilterForm(request.GET or None)
     form.fields['company_name'].choices = [(c, c) for c in companies if c]
     form.fields['car_name'].choices = [(c, c) for c in car_names if c]
-    form.fields['engine'].choices = [(c, c) for c in engines if c]
+    form.fields['engine'].choices = [("", "Wszystkie")] + [(c, c) for c in engines if c]
 
     filtered = False
+
+    print("IS VALID:", form.is_valid())
+    print("FORM ERRORS:", form.errors)
+
     if form.is_valid():
         data = form.cleaned_data
+        print("CLEANED DATA:", data)
 
         if data.get('company_name'):
-            qs = qs.filter(company_name=data['company_name'])
+            qs = qs.filter(company_name__iexact=data['company_name'])
             filtered = True
         if data.get('car_name'):
-            qs = qs.filter(car_name__icontains=data['car_name'])
+            qs = qs.filter(car_name__iexact=data['car_name'])
             filtered = True
-        if data.get('engine'):
-            qs = qs.filter(engine__in=data['engine'])
-            filtered = True
+
+        engine_list = data.get('engine')
+
+        if engine_list:
+            engine_list = [e for e in engine_list if e]  # usuwa ""
+
+            if engine_list:
+                qs = qs.filter(engine__in=engine_list)
+                filtered = True
+
         if data.get('min_power') is not None:
             qs = qs.filter(horsepower__gte=data['min_power'])
             filtered = True
@@ -199,6 +220,9 @@ def search(request):
         if data.get('seats'):
             qs = qs.filter(seats=data['seats'])
             filtered = True
+
+    print("FINAL QS:", qs.query)
+
 
     paginator = Paginator(qs, 10)  # 10 wyników na stronę
     page_number = request.GET.get("page")
@@ -423,17 +447,24 @@ from django.http import JsonResponse
 
 def get_engines(request):
     brand = request.GET.get("company_name")
+    model = request.GET.get("car_name")
 
-    engines = []
+    engines = Car.objects.all()
+
     if brand:
-        engines = (
-            Car.objects
-            .filter(company_name=brand)
-            .values_list("engine", flat=True)
-            .distinct()
-            .order_by("engine")
-        )
+        engines = engines.filter(company_name=brand)
+
+    if model:
+        engines = engines.filter(car_name=model)
+
+    engines = (
+        engines
+        .values_list("engine", flat=True)
+        .distinct()
+        .order_by("engine")
+    )
 
     return JsonResponse(list(engines), safe=False)
+
 
 
