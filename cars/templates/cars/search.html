@@ -1,0 +1,272 @@
+{% extends "cars/base.html" %}
+{% block content %}
+
+<div class="filters-page">
+  <section class="filters-hero">
+  <h1>Wyszukaj idealny samochód</h1>
+  <p>Skorzystaj z filtrów poniżej, aby dopasować auto do swoich potrzeb</p>
+</section>
+
+
+  <section class="filters-top">
+    <div class="filters-header">
+
+
+    <form method="get">
+
+      <!-- KROK 1 -->
+      <div class="fake-step">
+        <div class="fake-step-title">1️⃣ Wybór auta</div>
+
+        <div class="form-grid">
+          <div class="field">
+            <label>Marka</label>
+            <select name="company_name" id="company-select">
+              <option value="">— wybierz markę —</option>
+                {% for value, label in form.company_name.field.choices %}
+                  <option value="{{ value }}" {% if form.company_name.value == value %}selected{% endif %}>
+                    {{ label }}
+                  </option>
+                {% endfor %}
+            </select>
+
+
+          </div>
+
+          <div class="field">
+            <label>Model</label>
+            <select name="car_name" id="model-select">
+              <option value="">— wybierz model —</option>
+            </select>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- KROK 2 -->
+      <div class="fake-step">
+        <div class="fake-step-title">2️⃣ Silnik i osiągi</div>
+
+        <div class="form-grid">
+          <div class="field">
+            <label>Silnik</label>
+            <select name="engine" id="engine-select" disabled>
+              <option value="">— wybierz silnik —</option>
+            </select>
+
+          </div>
+
+          <div class="field">
+            <label>Moc min (KM)</label>
+            {{ form.min_power }}
+          </div>
+
+          <div class="field">
+            <label>Moc max (KM)</label>
+            {{ form.max_power }}
+          </div>
+
+          <div class="field">
+            <label>Prędkość min (km/h)</label>
+            {{ form.min_speed }}
+          </div>
+
+          <div class="field">
+            <label>Prędkość max (km/h)</label>
+            {{ form.max_speed }}
+          </div>
+        </div>
+      </div>
+
+      <!-- KROK 3 -->
+      <div class="fake-step">
+        <div class="fake-step-title">3️⃣ Budżet i typ</div>
+
+        <div class="form-grid">
+          <div class="field">
+            <label>Cena min (PLN)</label>
+            {{ form.min_price }}
+          </div>
+
+          <div class="field">
+            <label>Cena max (PLN)</label>
+            {{ form.max_price }}
+          </div>
+
+          <div class="field">
+            <label>Rodzaj paliwa</label>
+            {{ form.fuel_type }}
+          </div>
+
+          <div class="field">
+            <label>Liczba miejsc</label>
+            {{ form.seats }}
+          </div>
+        </div>
+      </div>
+
+      <div class="search-actions">
+        <button type="submit" class="search-btn">🔎 Wyszukaj</button>
+      </div>
+
+    </form>
+
+    <hr>
+
+    <div class="csv-actions">
+      <a href="{% url 'download_csv' %}?{{ request.GET.urlencode }}" class="csv-btn">
+        ⬇ Pobierz CSV
+      </a>
+    </div>
+
+
+  </section>
+
+  <section class="filters-results">
+    {% if filtered %}
+      <h2>Wyniki filtracji ({{ page_obj.paginator.count }})</h2>
+    {% else %}
+      <h2>Wszystkie auta ({{ page_obj.paginator.count }})</h2>
+    {% endif %}
+
+
+    <table class="results-table">
+      <thead>
+        <tr>
+          <th>Marka</th>
+          <th>Model</th>
+          <th>Silnik</th>
+          <th>Moc</th>
+          <th>Prędkość</th>
+          <th>Cena</th>
+          <th>Paliwo</th>
+          <th>Miejsca</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for car in results %}
+        <tr>
+          <td>{{ car.company_name }}</td>
+          <td>{{ car.car_name }}</td>
+          <td>{{ car.engine }}</td>
+          <td>{{ car.horsepower }}</td>
+          <td>{{ car.total_speed }}</td>
+          <td>{{ car.cars_price }}</td>
+          <td>{{ car.fuel_type }}</td>
+          <td>{{ car.seats }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8">Brak wyników</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+
+  <div class="pagination">
+  {% if page_obj.has_previous %}
+    <a href="?{% for k,v in request.GET.items %}{% if k != 'page' %}{{k}}={{v}}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}">
+      ← Poprzednia
+    </a>
+  {% endif %}
+
+  <span>
+    Strona {{ page_obj.number }} z {{ page_obj.paginator.num_pages }}
+  </span>
+
+  {% if page_obj.has_next %}
+    <a href="?{% for k,v in request.GET.items %}{% if k != 'page' %}{{k}}={{v}}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}">
+      Następna →
+    </a>
+  {% endif %}
+</div>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const brandSelect = document.getElementById("company-select");
+    const modelSelect = document.getElementById("model-select");
+    const engineSelect = document.getElementById("engine-select");
+
+    const selectedModel = "{{ request.GET.car_name|default:'' }}";
+
+    function loadModels(brand) {
+        modelSelect.innerHTML = "";
+        modelSelect.disabled = true;
+
+        engineSelect.innerHTML = '<option value="">— wybierz silnik —</option>';
+        engineSelect.disabled = true;
+
+        if (!brand) {
+            modelSelect.innerHTML = '<option value="">— wybierz model —</option>';
+            return;
+        }
+
+        fetch(`/get-models/?company_name=${brand}`)
+            .then(response => response.json())
+            .then(models => {
+                const allOption = document.createElement("option");
+                allOption.value = "";
+                allOption.textContent = "Wszystkie modele";
+                modelSelect.appendChild(allOption);
+
+                models.forEach(model => {
+                    const option = document.createElement("option");
+                    option.value = model;
+                    option.textContent = model;
+
+                    if (selectedModel && model === selectedModel) {
+                        option.selected = true;
+                    }
+
+                    modelSelect.appendChild(option);
+                });
+
+                modelSelect.disabled = false;
+
+                if (selectedModel) {
+                    loadEngines(brand, selectedModel);
+                }
+            });
+    }
+
+    function loadEngines(brand, model) {
+        engineSelect.innerHTML = '<option value="">— wybierz silnik —</option>';
+        engineSelect.disabled = true;
+
+        if (!brand || !model) return;
+
+        fetch(`/get-engines/?company_name=${brand}&car_name=${model}`)
+            .then(response => response.json())
+            .then(engines => {
+                engines.forEach(engine => {
+                    const option = document.createElement("option");
+                    option.value = engine;
+                    option.textContent = engine;
+                    engineSelect.appendChild(option);
+                });
+                engineSelect.disabled = false;
+            });
+    }
+
+    brandSelect.addEventListener("change", function () {
+        loadModels(this.value);
+    });
+
+    modelSelect.addEventListener("change", function () {
+        loadEngines(brandSelect.value, this.value);
+    });
+
+    if (brandSelect.value) {
+        loadModels(brandSelect.value);
+    }
+});
+</script>
+
+
+
+
+
+{% endblock %}
+
+

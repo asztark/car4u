@@ -1,0 +1,173 @@
+{% extends "cars/base.html" %}
+{% block content %}
+ 
+<style>
+  /* ===== KONTENER WYNIKÓW ===== */
+  .results-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding-bottom: 160px; /* 🔥 KLUCZ – zapobiega nachodzeniu na footer */
+  }
+ 
+  /* ===== KARTY REKOMENDACJI ===== */
+  .recommendation-card {
+    border: 3px solid #4caf50;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  }
+ 
+  .recommendation-card:first-child {
+    border-color: #ffd700;
+    background: linear-gradient(135deg, #fff9e6 0%, #ffe9a3 100%);
+  }
+ 
+  .rating-badge {
+    display: inline-block;
+    background: #4caf50;
+    color: white;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+    margin-left: 10px;
+    font-size: 14px;
+  }
+ 
+  /* ===== SEKCJA OCEN UŻYTKOWNIKA ===== */
+  .user-ratings-section {
+    background: #f5f5f5;
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 40px;
+  }
+ 
+  /* ===== PRZYCISK POWROTU ===== */
+  .reset-btn {
+    display: inline-block;
+    background: #667eea;
+    color: white;
+    padding: 14px 34px;
+    text-decoration: none;
+    border-radius: 10px;
+    font-weight: bold;
+    font-size: 16px;
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+  }
+ 
+  .reset-btn:hover {
+    background: #4f46e5;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4);
+  }
+</style>
+ 
+<div class="results-container">
+ 
+  <h1>🎉 Twoje spersonalizowane rekomendacje</h1>
+ 
+  {% if error %}
+<div style="background:#ffebee;padding:20px;border-radius:10px;border-left:5px solid #c62828;">
+<p style="color:#c62828;margin:0;">{{ error }}</p>
+<a href="{% url 'quiz' %}" style="color:#1976d2;text-decoration:underline;">
+        Wróć do quizu
+</a>
+</div>
+  {% else %}
+ 
+    <div style="background:#e8f5e9;padding:20px;border-radius:10px;margin-bottom:30px;">
+<p style="margin:0;font-size:16px;">
+<strong>✨ Na podstawie Twoich ocen ({{ total_ratings }} aut)</strong>  
+        oraz preferencji podobnych użytkowników dobraliśmy najlepsze propozycje:
+</p>
+</div>
+ 
+    <h2>🏆 TOP 5 rekomendacji</h2>
+ 
+    {% for car, score in recommendations %}
+<div class="recommendation-card">
+<h3 style="margin-top:0;">
+          {{ forloop.counter }}. {{ car.company_name }} {{ car.car_name }}
+ 
+          {% if forloop.first %}
+<span style="background:#ffd700;color:#333;padding:5px 12px;border-radius:20px;font-size:14px;margin-left:10px;">
+              ⭐ NAJLEPSZE DOPASOWANIE
+</span>
+          {% endif %}
+ 
+          <span class="rating-badge">
+            Dopasowanie: {{ score }}/5
+</span>
+</h3>
+ 
+        <table border="1" cellpadding="10"
+               style="width:100%;border-collapse:collapse;background:white;">
+<tr>
+<td style="width:200px;"><strong>💰 Cena</strong></td>
+<td><strong>{{ car.cars_price|floatformat:0 }} PLN</strong></td>
+</tr>
+<tr>
+<td><strong>⚡ Moc</strong></td>
+<td>{{ car.horsepower }} KM</td>
+</tr>
+<tr>
+<td><strong>⛽ Typ paliwa</strong></td>
+<td>{{ car.fuel_type }}</td>
+</tr>
+<tr>
+<td><strong>🏎️ Prędkość max</strong></td>
+<td>{{ car.total_speed }} km/h</td>
+</tr>
+<tr>
+<td><strong>💺 Liczba miejsc</strong></td>
+<td>{{ car.seats }}</td>
+</tr>
+<tr>
+<td><strong>🔧 Silnik</strong></td>
+<td>{{ car.engine }}</td>
+</tr>
+</table>
+</div>
+    {% endfor %}
+ 
+    <!-- ===== OCENY UŻYTKOWNIKA ===== -->
+<div class="user-ratings-section">
+<h2>📊 Twoje ostatnie oceny</h2>
+ 
+      <table border="1" cellpadding="10"
+             style="width:100%;border-collapse:collapse;background:white;">
+<thead style="background:#667eea;color:white;">
+<tr>
+<th>Samochód</th>
+<th>Ocena</th>
+</tr>
+</thead>
+<tbody>
+          {% for rating in user_ratings %}
+<tr>
+<td>{{ rating.car.company_name }} {{ rating.car.car_name }}</td>
+<td>
+<span style="color:#ffd700;font-size:20px;">
+                  {% for i in "12345" %}
+                    {% if forloop.counter <= rating.rating %}★{% else %}☆{% endif %}
+                  {% endfor %}
+</span>
+                ({{ rating.rating }}/5)
+</td>
+</tr>
+          {% endfor %}
+</tbody>
+</table>
+</div>
+ 
+    <!-- ===== PRZYCISK RESET ===== -->
+<div style="text-align:center;margin-top:40px;">
+<a href="{% url 'quiz' %}?reset_quiz=1" class="reset-btn">
+         Wypełnij quiz ponownie
+</a>
+</div>
+ 
+  {% endif %}
+</div>
+ 
+{% endblock %}

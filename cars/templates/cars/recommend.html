@@ -1,0 +1,349 @@
+{% extends "cars/base.html" %}
+{% block content %}
+ 
+<style>
+/* ===== HEADER ===== */
+.page-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+ 
+.page-title {
+  font-size: 38px;
+  font-weight: 800;
+  color: #020617;
+  margin-bottom: 6px;
+}
+ 
+.page-subtitle {
+  font-size: 16px;
+  color: #475569;
+  max-width: 620px;
+  margin: 0 auto 18px;
+}
+ 
+.title-divider {
+  width: 70px;
+  height: 2px;
+  background: #e5e7eb;
+  margin: 16px auto 26px;
+  border-radius: 999px;
+}
+ 
+/* ===== STEPPER ===== */
+.stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+}
+ 
+.stepper-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 150px;
+  text-align: center;
+  font-size: 14px;
+  color: #94a3b8;
+}
+ 
+.step-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid #cbd5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  background: white;
+  margin-bottom: 8px;
+}
+ 
+.step-label {
+  line-height: 1.3;
+}
+ 
+/* linia */
+.stepper-line {
+  width: 60px;
+  height: 2px;
+  background: #e5e7eb;
+}
+ 
+/* aktywny krok */
+.stepper-item.active .step-circle {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: white;
+}
+ 
+.stepper-item.active .step-label {
+  color: #1e293b;
+  font-weight: 600;
+}
+ 
+/* ukończony krok */
+.stepper-item.done .step-circle {
+  background: #16a34a;
+  border-color: #16a34a;
+  color: white;
+}
+ 
+.stepper-item.done .step-label {
+  color: #166534;
+}
+ 
+/* ===== FORM ===== */
+.nice-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 30px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+}
+ 
+.nice-card.blue {
+  border-left: 5px solid #2563eb;
+}
+ 
+.nice-card.green {
+  border-left: 5px solid #16a34a;
+}
+ 
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+ 
+.clean-btn {
+  background: #020617;
+  color: white;
+  padding: 14px 36px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+ 
+.clean-btn:hover {
+  background: #111827;
+}
+ 
+/* ===== RECOMMENDATIONS ===== */
+.recommendation-card {
+  background: white;
+  border-radius: 12px;
+  padding: 22px;
+  margin-bottom: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+ 
+.best-badge {
+  background: #16a34a;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  margin-left: 10px;
+}
+ 
+.car-params {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-top: 14px;
+}
+ 
+.param {
+  background: #f8fafc;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+ 
+.param span {
+  display: block;
+  color: #64748b;
+  font-size: 13px;
+}
+</style>
+ 
+<!-- ===== HEADER ===== -->
+<div class="page-header">
+<h1 class="page-title">Inteligentny System Rekomendacji Aut Służbowych</h1>
+<p class="page-subtitle">
+    Dopasuj samochód do polityki firmy oraz preferencji pracownika w trzech prostych krokach
+</p>
+<div class="title-divider"></div>
+ 
+  <!-- ===== STEPPER ===== -->
+<div class="stepper">
+ 
+    <div class="stepper-item {% if not request.POST.company_name and not result_cars %}active{% elif request.POST.company_name or result_cars %}done{% endif %}">
+<div class="step-circle">1</div>
+<div class="step-label">Ograniczenia firmowe</div>
+</div>
+ 
+    <div class="stepper-line"></div>
+ 
+    <div class="stepper-item {% if request.POST.company_name and not result_cars %}active{% elif result_cars %}done{% endif %}">
+<div class="step-circle">2</div>
+<div class="step-label">Auto bazowe</div>
+</div>
+ 
+    <div class="stepper-line"></div>
+ 
+    <div class="stepper-item {% if result_cars %}active{% endif %}">
+<div class="step-circle">3</div>
+<div class="step-label">Rekomendacje</div>
+</div>
+ 
+  </div>
+</div>
+ 
+<form method="post">
+  {% csrf_token %}
+ 
+  <!-- ===== KROK 1 ===== -->
+<div class="nice-card blue">
+<h3>🏢 Ograniczenia firmowe</h3>
+ 
+    <div class="form-grid">
+ 
+  <div>
+<label>{{ constraints_form.min_price.label }}</label>
+    {{ constraints_form.min_price }}
+</div>
+ 
+  <div>
+<label>{{ constraints_form.max_price.label }}</label>
+    {{ constraints_form.max_price }}
+</div>
+ 
+  <div>
+<label>{{ constraints_form.min_horsepower.label }}</label>
+    {{ constraints_form.min_horsepower }}
+</div>
+ 
+  <div>
+<label>{{ constraints_form.max_horsepower.label }}</label>
+    {{ constraints_form.max_horsepower }}
+</div>
+ 
+  <div>
+<label>{{ constraints_form.fuel_type.label }}</label>
+    {{ constraints_form.fuel_type }}
+</div>
+ 
+  <div>
+<label>{{ constraints_form.min_seats.label }}</label>
+    {{ constraints_form.min_seats }}
+</div>
+ 
+  <div>
+<label>{{ constraints_form.max_seats.label }}</label>
+    {{ constraints_form.max_seats }}
+</div>
+ 
+</div>
+ 
+  </div>
+ 
+  <!-- ===== KROK 2 ===== -->
+<div class="nice-card green">
+<h3>👤 Auto bazowe pracownika</h3>
+ 
+    <label>Marka samochodu</label>
+<select name="company_name" required onchange="this.form.submit()">
+<option value="">-- wybierz markę --</option>
+      {% for value, label in select_form.fields.company_name.choices %}
+<option value="{{ value }}" {% if value == request.POST.company_name %}selected{% endif %}>
+          {{ label }}
+</option>
+      {% endfor %}
+</select>
+ 
+    {% if request.POST.company_name %}
+<br><br>
+<label>Model</label>
+<select name="car_name" required>
+<option value="">-- wybierz model --</option>
+        {% for value, label in select_form.fields.car_name.choices %}
+<option value="{{ value }}" {% if value == request.POST.car_name %}selected{% endif %}>
+            {{ label }}
+</option>
+        {% endfor %}
+</select>
+ 
+      <br><br>
+<button type="submit" class="clean-btn">
+         Znajdź TOP 5 rekomendacji
+</button>
+    {% endif %}
+</div>
+</form>
+ 
+{% if result_cars %}
+<hr style="margin:50px 0;">
+ 
+<h2>TOP 5 rekomendowanych aut służbowych</h2>
+ 
+{% for item in result_cars %}
+<div class="recommendation-card">
+<h3>
+      {{ forloop.counter }}. {{ item.car.company_name }} {{ item.car.car_name }}
+      {% if forloop.first %}
+<span class="best-badge">NAJLEPSZE DOPASOWANIE</span>
+      {% endif %}
+</h3>
+ 
+    <div class="car-params">
+<div class="param">
+<span>🔧 Silnik</span>
+<strong>{{ item.car.engine }}</strong>
+</div>
+ 
+  <div class="param">
+<span>⚡ Moc</span>
+<strong>{{ item.car.horsepower }} KM</strong>
+</div>
+ 
+  <div class="param">
+<span>💰 Cena</span>
+<strong>{{ item.car.cars_price|floatformat:0 }} PLN</strong>
+</div>
+ 
+  <div class="param">
+<span>🏎️ Prędkość max</span>
+<strong>{{ item.car.total_speed }} km/h</strong>
+</div>
+ 
+  <div class="param">
+<span>⛽ Paliwo</span>
+<strong>{{ item.car.fuel_type }}</strong>
+</div>
+ 
+  <div class="param">
+<span>💺 Miejsca</span>
+<strong>{{ item.car.seats }}</strong>
+</div>
+</div>
+
+<!-- Dopasowanie KNN poza siatką -->
+<div class="param knn" style="margin-top: 14px;">
+        <span>📊 Dopasowanie (KNN)</span>
+        <strong>{{ item.distance|floatformat:3 }}</strong>
+        <small style="display: block; color: #64748b; font-size: 12px; margin-top: 4px;">im mniejsza wartość, tym lepsze dopasowanie</small>
+</div>
+
+</div>
+{% endfor %}
+{% endif %}
+
+
+ 
+{% endblock %}

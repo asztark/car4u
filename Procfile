@@ -1,0 +1,1 @@
+web: python manage.py collectstatic --noinput && gunicorn twoj_projekt.wsgi --log-file -

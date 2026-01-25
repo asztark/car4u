@@ -1,0 +1,191 @@
+{% extends "cars/base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    /* cała karta */
+    .auth-card {
+        background: linear-gradient(180deg, #ffffff 0%, #f4f6f8 100%);
+        border-radius: 14px;
+        padding: 30px;
+        box-shadow: 0 15px 40px rgba(0,0,0,0.12);
+    }
+
+    /* nagłówek */
+    .auth-card h2 {
+        text-align: center;
+        margin-bottom: 25px;
+        letter-spacing: 1px;
+    }
+
+    /* label */
+    label {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 12px;
+        color: #333;
+    }
+
+    /* inputy */
+    input {
+        width: 100%;
+        padding: 12px;
+        margin-top: 6px;
+        margin-bottom: 18px;
+        border-radius: 10px;
+        border: 1px solid #bbb;
+        background: #fdfdfd;
+    }
+
+    input:focus {
+        outline: none;
+        border-color: #1f6fff;
+        box-shadow: 0 0 0 2px rgba(31,111,255,0.25);
+    }
+
+    /* przycisk */
+    .btn-car {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #ff3b3b, #c40000);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    text-transform: uppercase;
+    }
+
+    .btn-car:hover {
+    background: linear-gradient(135deg, #ff5a5a, #e60000);
+    }
+
+    .auth-title {
+        text-align: center;
+        margin-bottom: 25px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        position: relative;
+    }
+
+    .auth-title::after {
+        content: "";
+        display: block;
+        width: 60px;
+        height: 3px;
+        background: linear-gradient(90deg, #ff3b3b, #ffb000);
+        margin: 12px auto 0;
+        border-radius: 3px;
+    }
+
+    .auth-card::before {
+    content: "";
+    display: block;
+    height: 6px;
+    background: linear-gradient(90deg, #000, #ff3b3b, #000);
+    border-radius: 12px 12px 0 0;
+    margin: -30px -30px 25px -30px;
+    }
+   .auth-bg {
+    min-height: 100vh;
+    background-image: url("/static/cars/car-bg.jpg");
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    }
+
+
+    /* LED / HUD focus */
+    input:focus {
+    outline: none;
+    border-color: #ff3b3b;
+    box-shadow: 0 0 0 3px rgba(255,59,59,0.35);
+    }
+    .error-text {
+    display: block;
+    font-size: 13px;
+    color: #8a0000;
+    background: linear-gradient(90deg, #ffe5e5, #fff5f5);
+    padding: 10px 12px;
+    border-radius: 10px;
+    border-left: 4px solid #ff3b3b;
+    }
+
+    form p {
+    margin: 0;
+    }
+    .hero.hero-register {
+    background-image: url("/static/cars/car-bg.jpg");
+    }
+
+
+</style>
+<div class="hero hero-register">
+    <div class="hero-content auth-card">
+
+    <h2 class="auth-title">🚗 Rejestracja</h2>
+
+
+    <form method="post">
+    {% csrf_token %}
+    {% if form.errors %}
+    <div class="error-text" style="margin-bottom: 15px;">
+        {% for field in form %}
+            {% for error in field.errors %}
+                {{ error }}<br>
+            {% endfor %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+            {{ error }}<br>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+
+
+    <p>
+        <label for="id_username">Nazwa użytkownika</label><br>
+        {{ form.username }}
+    </p>
+
+   <p>
+    <label for="id_password1">Hasło</label><br>
+    {{ form.password1 }}
+
+    {% if form.password1.errors %}
+        <span class="error-text">
+            Hasło musi mieć co najmniej 8 znaków i nie może być zbyt proste.
+        </span>
+    {% endif %}
+
+    <p>
+    <label for="id_password2">Powtórz hasło</label><br>
+    {{ form.password2 }}
+    </p>
+
+
+
+    <button type="submit" style="
+        width: 100%;
+        padding: 10px;
+        background: #333;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    ">
+        Utwórz konto
+    </button>
+</form>
+
+
+    <p style="margin-top: 15px; text-align: center;">
+        Masz już konto?
+        <a href="{% url 'login' %}">Zaloguj się</a>
+    </p>
+    </div>
+</div>
+{% endblock %}

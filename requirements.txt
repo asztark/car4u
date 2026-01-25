@@ -1,0 +1,6 @@
+Django>=4.2
+pandas
+numpy
+scikit-learn
+gunicorn
+whitenoise   # opcjonalnie do ładowania zmiennych środowiskowych

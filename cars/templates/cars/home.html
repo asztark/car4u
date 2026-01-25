@@ -1,0 +1,43 @@
+{% extends "cars/base.html" %}
+{% block content %}
+
+<section class="hero">
+    <div class="hero-content">
+        <h1>Car4U</h1>
+        <p>Inteligentny system wyboru samochodów służbowych</p>
+        <a href="{% url 'search' %}" class="start-btn">Zaczynamy</a>
+    </div>
+</section>
+
+<section class="features-section">
+
+  <h2 class="features-title">Aplikacja umożliwia</h2>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      🔎 Przeszukiwanie bazy aut służbowych
+    </div>
+
+    <div class="feature-card">
+      📊 Filtrowanie po parametrach technicznych
+    </div>
+
+    <div class="feature-card">
+      📤 Eksport wyników do CSV
+    </div>
+
+    <div class="feature-card">
+      🤖 Inteligentna rekomendacja auta (KNN)
+    </div>
+  </div>
+
+</section>
+
+
+</div>
+
+    </div>
+</section>
+
+{% endblock %}
+
