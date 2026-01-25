@@ -76,25 +76,37 @@ def index(request):
 
 def download_csv(request):
     qs = Car.objects.all()
-
+    
     companies = sorted(Car.objects.values_list('company_name', flat=True).distinct())
     car_names = sorted(Car.objects.values_list('car_name', flat=True).distinct())
-    engines = sorted(Car.objects.values_list('engine', flat=True).distinct())
-
+    
+    engines_qs = Car.objects.all()
+    if request.GET.get("company_name"):
+        engines_qs = engines_qs.filter(company_name=request.GET.get("company_name"))
+    if request.GET.get("car_name"):
+        engines_qs = engines_qs.filter(car_name=request.GET.get("car_name"))
+    engines = sorted(engines_qs.values_list("engine", flat=True).distinct())
+    
     form = CarFilterForm(request.GET or None)
     form.fields['company_name'].choices = [(c, c) for c in companies if c]
     form.fields['car_name'].choices = [(c, c) for c in car_names if c]
-    form.fields['engine'].choices = [(c, c) for c in engines if c]
-
+    form.fields['engine'].choices = [("", "Wszystkie")] + [(c, c) for c in engines if c]
+    
+    # ✅ TA SAMA LOGIKA FILTROWANIA CO W search()
     if form.is_valid():
         data = form.cleaned_data
-
+        
         if data.get('company_name'):
-            qs = qs.filter(company_name=data['company_name'])
+            qs = qs.filter(company_name__iexact=data['company_name'])
         if data.get('car_name'):
-            qs = qs.filter(car_name__icontains=data['car_name'])
-        if data.get('engine'):
-            qs = qs.filter(engine=data['engine'])
+            qs = qs.filter(car_name__iexact=data['car_name'])
+        
+        engine_list = data.get('engine')
+        if engine_list:
+            engine_list = [e for e in engine_list if e]
+            if engine_list:
+                qs = qs.filter(engine__in=engine_list)
+        
         if data.get('min_power') is not None:
             qs = qs.filter(horsepower__gte=data['min_power'])
         if data.get('max_power') is not None:
@@ -111,11 +123,26 @@ def download_csv(request):
             qs = qs.filter(fuel_type=data['fuel_type'])
         if data.get('seats'):
             qs = qs.filter(seats=data['seats'])
-
-    df = pd.DataFrame(list(qs.values()))
-    csv = df.to_csv(index=False, encoding='utf-8')
-    response = HttpResponse(csv, content_type='text/csv')
+    
+    # ✅ Tworzenie CSV
+    if qs.exists():
+        df = pd.DataFrame(list(qs.values(
+            'company_name', 'car_name', 'engine', 'horsepower', 
+            'total_speed', 'cars_price', 'fuel_type', 'seats'
+        )))
+        
+        # Polskie nazwy kolumn
+        df.columns = ['Marka', 'Model', 'Silnik', 'Moc (KM)', 
+                      'Prędkość (km/h)', 'Cena (PLN)', 'Paliwo', 'Miejsca']
+    else:
+        df = pd.DataFrame(columns=['Marka', 'Model', 'Silnik', 'Moc (KM)', 
+                                   'Prędkość (km/h)', 'Cena (PLN)', 'Paliwo', 'Miejsca'])
+    
+    csv = df.to_csv(index=False, encoding='utf-8-sig')
+    
+    response = HttpResponse(csv, content_type='text/csv; charset=utf-8-sig')
     response['Content-Disposition'] = 'attachment; filename="wyniki_filtrowania.csv"'
+    
     return response
 
 def register(request):
@@ -151,6 +178,8 @@ from django.core.paginator import Paginator
 
 
 def search(request):
+    if 'download_csv' in request.GET:
+        return download_csv(request)
     qs = Car.objects.all()
 
     companies = sorted(Car.objects.values_list('company_name', flat=True).distinct())
